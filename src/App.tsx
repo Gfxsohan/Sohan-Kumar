@@ -11,7 +11,7 @@ import Footer from './components/Footer';
 import WhatsAppFloat from './components/WhatsAppFloat';
 import AdminPanel from './components/AdminPanel';
 
-import { INITIAL_POSTERS } from './data';
+import { INITIAL_POSTERS, DESIGNER_AVATAR } from './data';
 import { Poster, ContactSubmission } from './types';
 import { motion, AnimatePresence } from 'motion/react';
 import { Flame } from 'lucide-react';
@@ -21,6 +21,16 @@ export default function App() {
   const [loadPercentage, setLoadPercentage] = useState(0);
   const [isAdminOpen, setIsAdminOpen] = useState(false);
   const [isAdminMode, setIsAdminMode] = useState(false);
+
+  // Designer avatar state backed by localStorage
+  const [designerAvatar, setDesignerAvatar] = useState<string>(() => {
+    return localStorage.getItem('sohanx_designer_avatar') || DESIGNER_AVATAR;
+  });
+
+  const handleUpdateDesignerAvatar = (newAvatarUrl: string) => {
+    setDesignerAvatar(newAvatarUrl);
+    localStorage.setItem('sohanx_designer_avatar', newAvatarUrl);
+  };
 
   // Posters database state backed by localStorage
   const [posters, setPosters] = useState<Poster[]>([]);
@@ -224,7 +234,7 @@ export default function App() {
           />
 
           {/* Hero Section */}
-          <Hero onViewWork={handleViewWork} />
+          <Hero onViewWork={handleViewWork} designerAvatar={designerAvatar} />
 
           {/* Core Posters Portfolio & PSD Downloads */}
           <Portfolio posters={posters} onIncrementStat={handleIncrementStat} />
@@ -233,7 +243,7 @@ export default function App() {
           <Services />
 
           {/* About Me Story & Custom skill meters */}
-          <About />
+          <About designerAvatar={designerAvatar} />
 
           {/* Social connections & Interactive FBLike widget */}
           <SocialHub />
@@ -259,6 +269,8 @@ export default function App() {
             onAddPoster={handleAddPoster}
             onDeletePoster={handleDeletePoster}
             onToggleSubmissionStatus={handleToggleSubmissionStatus}
+            designerAvatar={designerAvatar}
+            onUpdateAvatar={handleUpdateDesignerAvatar}
           />
         </div>
       )}

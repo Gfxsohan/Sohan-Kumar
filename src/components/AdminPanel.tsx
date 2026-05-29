@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Poster, ContactSubmission } from '../types';
-import { Plus, Trash2, Check, ExternalLink, Eye, Download, Inbox, Layers, Settings, X } from 'lucide-react';
+import { Plus, Trash2, Check, ExternalLink, Eye, Download, Inbox, Layers, Settings, X, Upload, User } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 
 interface AdminPanelProps {
@@ -11,6 +11,8 @@ interface AdminPanelProps {
   onAddPoster: (poster: Omit<Poster, 'id' | 'views' | 'downloads' | 'creationDate'>) => void;
   onDeletePoster: (id: string) => void;
   onToggleSubmissionStatus: (id: string, status: 'new' | 'responded' | 'archived') => void;
+  designerAvatar: string;
+  onUpdateAvatar: (avatarUrl: string) => void;
 }
 
 export default function AdminPanel({
@@ -21,6 +23,8 @@ export default function AdminPanel({
   onAddPoster,
   onDeletePoster,
   onToggleSubmissionStatus,
+  designerAvatar,
+  onUpdateAvatar,
 }: AdminPanelProps) {
   
   // Tab states
@@ -37,10 +41,39 @@ export default function AdminPanel({
   const [isPremium, setIsPremium] = useState(false);
 
   const [formSuccess, setFormSuccess] = useState(false);
+  const [avatarSuccess, setAvatarSuccess] = useState(false);
 
   // Compute stats automatically
   const totalViews = posters.reduce((sum, p) => sum + (p.views || 0), 0);
   const totalDownloads = posters.reduce((sum, p) => sum + (p.downloads || 0), 0);
+
+  // FileReader handler for profile avatar update
+  const handleAvatarChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      if (typeof reader.result === 'string') {
+        onUpdateAvatar(reader.result);
+        setAvatarSuccess(true);
+        setTimeout(() => setAvatarSuccess(false), 3000);
+      }
+    };
+    reader.readAsDataURL(file);
+  };
+
+  // FileReader handler for new portfolio poster upload
+  const handlePosterImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      if (typeof reader.result === 'string') {
+        setNewImgUrl(reader.result);
+      }
+    };
+    reader.readAsDataURL(file);
+  };
 
   const handleCreatePoster = (e: React.FormEvent) => {
     e.preventDefault();
@@ -170,137 +203,221 @@ export default function AdminPanel({
             {/* TAB: Manage Portfolio Grid */}
             {activeTab === 'posters' && (
               <div className="grid grid-cols-1 md:grid-cols-12 gap-8 items-start text-left">
-                {/* Add New design form */}
-                <div className="md:col-span-12 xl:col-span-5 bg-gray-50 border border-gray-150 p-5 rounded-2xl space-y-4">
-                  <h4 className="font-display font-black text-sm text-[#0d0d0d] flex items-center gap-1.5 pb-2 border-b border-gray-200">
-                    <Plus className="w-4 h-4 text-[#ff2b2b]" /> Add New Portfolio Poster
-                  </h4>
-
-                  <form onSubmit={handleCreatePoster} className="space-y-4 text-xs">
-                    {/* Design title */}
-                    <div className="space-y-1">
-                      <label className="text-gray-400 font-mono text-[8px] uppercase tracking-widest font-black block">Design Heading *</label>
-                      <input
-                        id="new-poster-title"
-                        type="text"
-                        required
-                        value={newTitle}
-                        onChange={(e) => setNewTitle(e.target.value)}
-                        placeholder="e.g. Festival Cosmic Poster template"
-                        className="w-full bg-white border border-gray-200 px-3 py-2.5 rounded-lg text-[#0d0d0d] text-xs focus:outline-none focus:border-[#ff2b2b]/50 transition-all font-medium"
-                      />
-                    </div>
-
-                    {/* Sizing description */}
-                    <div className="space-y-1">
-                      <label className="text-gray-400 font-mono text-[8px] uppercase tracking-widest font-black block">Description *</label>
-                      <textarea
-                        id="new-poster-desc"
-                        required
-                        rows={2}
-                        value={newDesc}
-                        onChange={(e) => setNewDesc(e.target.value)}
-                        placeholder="Brief summary matching template..."
-                        className="w-full bg-white border border-gray-200 p-3 rounded-lg text-[#0d0d0d] text-xs focus:outline-none focus:border-[#ff2b2b]/50 transition-all resize-none font-medium h-14"
-                      ></textarea>
-                    </div>
-
-                    {/* Grid category select */}
-                    <div className="grid grid-cols-2 gap-3">
-                      <div className="space-y-1">
-                        <label className="text-gray-400 font-mono text-[8px] uppercase tracking-widest font-black block">Category</label>
-                        <select
-                          id="new-poster-category"
-                          value={newCategory}
-                          onChange={(e) => setNewCategory(e.target.value as Poster['category'])}
-                          className="w-full bg-white border border-gray-200 px-3 py-2.5 rounded-lg text-[#0d0d0d] text-xs focus:outline-none cursor-pointer focus:border-[#ff2b2b]/50 transition-all font-semibold"
-                        >
-                          <option value="Posters">Posters</option>
-                          <option value="Social Media">Social Media</option>
-                          <option value="Branding">Branding</option>
-                          <option value="Festival">Festival</option>
-                          <option value="Advertisement">Advertisement</option>
-                        </select>
-                      </div>
-
-                      <div className="space-y-1">
-                        <label className="text-gray-400 font-mono text-[8px] uppercase tracking-widest font-black block">PSD Size</label>
-                        <input
-                          id="new-poster-size"
-                          type="text"
-                          value={newPsdSize}
-                          onChange={(e) => setNewPsdSize(e.target.value)}
-                          className="w-full bg-white border border-gray-200 px-3 py-2.5 rounded-lg text-[#0d0d0d] text-xs focus:outline-none focus:border-[#ff2b2b]/50 transition-all font-medium"
+                {/* Left Column wrapper containing Profile Photo card and Add New Poster form card */}
+                <div className="md:col-span-12 xl:col-span-5 space-y-6 text-left">
+                  
+                  {/* CARD 1: Profile photo uploader */}
+                  <div className="bg-gray-50 border border-gray-150 p-5 rounded-2xl space-y-4">
+                    <h4 className="font-display font-black text-sm text-[#0d0d0d] flex items-center gap-1.5 pb-2 border-b border-gray-200">
+                      <User className="w-4.5 h-4.5 text-[#ff2b2b]" /> Update Profile Photo (Apna Photo)
+                    </h4>
+                    
+                    <div className="flex flex-col sm:flex-row items-center gap-4">
+                      {/* Avatar preview */}
+                      <div className="relative w-20 h-20 rounded-full overflow-hidden border-2 border-[#ff2b2b]/30 bg-white shadow-md shrink-0 flex items-center justify-center">
+                        <img 
+                          src={designerAvatar} 
+                          alt="Sohan current avatar"
+                          className="w-full h-full object-cover"
+                          referrerPolicy="no-referrer"
                         />
                       </div>
-                    </div>
-
-                    {/* Resolution & Software options */}
-                    <div className="grid grid-cols-2 gap-3">
-                      <div className="space-y-1">
-                        <label className="text-gray-400 font-mono text-[8px] uppercase tracking-widest font-black block">Resolution</label>
-                        <input
-                          id="new-poster-resolution"
-                          type="text"
-                          value={newDimensions}
-                          onChange={(e) => setNewDimensions(e.target.value)}
-                          className="w-full bg-white border border-gray-200 px-3 py-2.5 rounded-lg text-[#0d0d0d] text-xs focus:outline-none focus:border-[#ff2b2b]/50 transition-all font-medium"
-                        />
-                      </div>
-
-                      <div className="space-y-1">
-                        <label className="text-gray-400 font-mono text-[8px] uppercase tracking-widest font-black block">Software tags</label>
-                        <input
-                          id="new-poster-software"
-                          type="text"
-                          value={softwareTags}
-                          onChange={(e) => setSoftwareTags(e.target.value)}
-                          className="w-full bg-white border border-gray-200 px-3 py-2.5 rounded-lg text-[#0d0d0d] text-xs focus:outline-none focus:border-[#ff2b2b]/50 transition-all font-medium"
-                        />
+                      <div className="flex-grow space-y-2 text-center sm:text-left">
+                        <p className="text-[10px] text-gray-500 font-sans leading-relaxed">
+                          Choose any image file from your computer/device. This will update your profile photo in the Hero and About columns instantly.
+                        </p>
+                        <label className="inline-flex items-center justify-center space-x-1.5 px-3 py-2 bg-white hover:bg-gray-100 border border-gray-200 text-gray-700 hover:text-[#0d0d0d] rounded-lg text-[9px] font-mono font-bold uppercase tracking-wider cursor-pointer transition-colors shadow-xs">
+                          <Upload className="w-3.5 h-3.5 text-[#ff2b2b]" />
+                          <span>Choose New Photo</span>
+                          <input 
+                            id="admin-avatar-file-input"
+                            type="file" 
+                            accept="image/*" 
+                            className="hidden" 
+                            onChange={handleAvatarChange} 
+                          />
+                        </label>
                       </div>
                     </div>
-
-                    {/* Custom image option */}
-                    <div className="space-y-1">
-                      <label className="text-gray-400 font-mono text-[8px] uppercase tracking-widest font-black block">Design Preview URL</label>
-                      <input
-                        id="new-poster-imageurl"
-                        type="text"
-                        value={newImgUrl}
-                        onChange={(e) => setNewImgUrl(e.target.value)}
-                        placeholder="Leave empty for auto-generated seeds"
-                        className="w-full bg-white border border-gray-200 px-3 py-2.5 rounded-lg text-[#0d0d0d] text-xs focus:outline-none focus:border-[#ff2b2b]/50 transition-all font-medium"
-                      />
-                    </div>
-
-                    {/* Premium badge */}
-                    <div className="flex items-center space-x-2.5 py-1">
-                      <input
-                        id="new-poster-premium"
-                        type="checkbox"
-                        checked={isPremium}
-                        onChange={(e) => setIsPremium(e.target.checked)}
-                        className="w-4 h-4 rounded border-gray-350 text-[#ff2b2b] focus:ring-[#ff2b2b] cursor-pointer"
-                      />
-                      <label htmlFor="new-poster-premium" className="text-gray-500 font-mono text-[9px] uppercase font-bold tracking-wider cursor-pointer">
-                        Mark as Premium PSD File
-                      </label>
-                    </div>
-
-                    {formSuccess && (
-                      <div className="bg-emerald-50 border border-emerald-200 py-2 px-3 rounded-lg text-emerald-605 font-mono text-[9px] font-bold text-center">
-                        ✓ Design Poster Added To Portfolio!
+                    {avatarSuccess && (
+                      <div className="bg-emerald-50 border border-emerald-200 py-2 px-3 rounded-lg text-emerald-600 font-mono text-[9px] font-bold text-center">
+                        ✓ Profile Headshot Updated Successfully!
                       </div>
                     )}
+                  </div>
 
-                    <button
-                      id="new-poster-submit-btn"
-                      type="submit"
-                      className="w-full bg-[#0d0d0d] hover:bg-[#ff2b2b] text-white font-bold py-2.5 rounded-lg text-xs tracking-widest uppercase cursor-pointer transition-colors shadow-sm"
-                    >
-                      Publish to Grid
-                    </button>
-                  </form>
+                  {/* CARD 2: Add New design poster form */}
+                  <div className="bg-gray-50 border border-gray-150 p-5 rounded-2xl space-y-4">
+                    <h4 className="font-display font-black text-sm text-[#0d0d0d] flex items-center gap-1.5 pb-2 border-b border-gray-200">
+                      <Plus className="w-4 h-4 text-[#ff2b2b]" /> Add New Portfolio Poster
+                    </h4>
+
+                    <form onSubmit={handleCreatePoster} className="space-y-4 text-xs">
+                      {/* Design title */}
+                      <div className="space-y-1">
+                        <label className="text-gray-400 font-mono text-[8px] uppercase tracking-widest font-black block">Design Heading *</label>
+                        <input
+                          id="new-poster-title"
+                          type="text"
+                          required
+                          value={newTitle}
+                          onChange={(e) => setNewTitle(e.target.value)}
+                          placeholder="e.g. Festival Cosmic Poster template"
+                          className="w-full bg-white border border-gray-200 px-3 py-2.5 rounded-lg text-[#0d0d0d] text-xs focus:outline-none focus:border-[#ff2b2b]/50 transition-all font-medium"
+                        />
+                      </div>
+
+                      {/* Sizing description */}
+                      <div className="space-y-1">
+                        <label className="text-gray-400 font-mono text-[8px] uppercase tracking-widest font-black block">Description *</label>
+                        <textarea
+                          id="new-poster-desc"
+                          required
+                          rows={2}
+                          value={newDesc}
+                          onChange={(e) => setNewDesc(e.target.value)}
+                          placeholder="Brief summary matching template..."
+                          className="w-full bg-white border border-gray-200 p-3 rounded-lg text-[#0d0d0d] text-xs focus:outline-none focus:border-[#ff2b2b]/50 transition-all resize-none font-medium h-14"
+                        ></textarea>
+                      </div>
+
+                      {/* Grid category select */}
+                      <div className="grid grid-cols-2 gap-3">
+                        <div className="space-y-1">
+                          <label className="text-gray-400 font-mono text-[8px] uppercase tracking-widest font-black block">Category</label>
+                          <select
+                            id="new-poster-category"
+                            value={newCategory}
+                            onChange={(e) => setNewCategory(e.target.value as Poster['category'])}
+                            className="w-full bg-white border border-gray-200 px-3 py-2.5 rounded-lg text-[#0d0d0d] text-xs focus:outline-none cursor-pointer focus:border-[#ff2b2b]/50 transition-all font-semibold"
+                          >
+                            <option value="Posters">Posters</option>
+                            <option value="Social Media">Social Media</option>
+                            <option value="Branding">Branding</option>
+                            <option value="Festival">Festival</option>
+                            <option value="Advertisement">Advertisement</option>
+                          </select>
+                        </div>
+
+                        <div className="space-y-1">
+                          <label className="text-gray-400 font-mono text-[8px] uppercase tracking-widest font-black block">PSD Size</label>
+                          <input
+                            id="new-poster-size"
+                            type="text"
+                            value={newPsdSize}
+                            onChange={(e) => setNewPsdSize(e.target.value)}
+                            className="w-full bg-white border border-gray-200 px-3 py-2.5 rounded-lg text-[#0d0d0d] text-xs focus:outline-none focus:border-[#ff2b2b]/50 transition-all font-medium"
+                          />
+                        </div>
+                      </div>
+
+                      {/* Resolution & Software options */}
+                      <div className="grid grid-cols-2 gap-3">
+                        <div className="space-y-1">
+                          <label className="text-gray-400 font-mono text-[8px] uppercase tracking-widest font-black block">Resolution</label>
+                          <input
+                            id="new-poster-resolution"
+                            type="text"
+                            value={newDimensions}
+                            onChange={(e) => setNewDimensions(e.target.value)}
+                            className="w-full bg-white border border-gray-200 px-3 py-2.5 rounded-lg text-[#0d0d0d] text-xs focus:outline-none focus:border-[#ff2b2b]/50 transition-all font-medium"
+                          />
+                        </div>
+
+                        <div className="space-y-1">
+                          <label className="text-gray-400 font-mono text-[8px] uppercase tracking-widest font-black block">Software tags</label>
+                          <input
+                            id="new-poster-software"
+                            type="text"
+                            value={softwareTags}
+                            onChange={(e) => setSoftwareTags(e.target.value)}
+                            className="w-full bg-white border border-gray-200 px-3 py-2.5 rounded-lg text-[#0d0d0d] text-xs focus:outline-none focus:border-[#ff2b2b]/50 transition-all font-medium"
+                          />
+                        </div>
+                      </div>
+
+                      {/* Custom image option & File Upload field */}
+                      <div className="space-y-2">
+                        <label className="text-gray-400 font-mono text-[8px] uppercase tracking-widest font-black block">Design / Photo Layout Image</label>
+                        <div className="space-y-2">
+                          {/* File upload drag/click zone */}
+                          <label className="flex flex-col items-center justify-center p-4 border border-dashed border-gray-250 hover:border-[#ff2b2b]/40 rounded-xl bg-white cursor-pointer transition-all">
+                            <Upload className="w-5 h-5 text-gray-400 shrink-0" />
+                            <span className="text-[10px] text-gray-500 font-bold tracking-tight mt-1">Upload JPEG/PNG from files</span>
+                            <input 
+                              id="admin-poster-file-input"
+                              type="file" 
+                              accept="image/*" 
+                              className="hidden" 
+                              onChange={handlePosterImageChange} 
+                            />
+                          </label>
+
+                          <div className="flex items-center justify-center text-center font-mono text-[8px] text-gray-400 uppercase font-black tracking-wide">
+                            <span>— or —</span>
+                          </div>
+
+                          <input
+                            id="new-poster-imageurl"
+                            type="text"
+                            value={newImgUrl.startsWith('data:image') ? '[Uploaded Image File]' : newImgUrl}
+                            onChange={(e) => {
+                              if (e.target.value !== '[Uploaded Image File]') {
+                                setNewImgUrl(e.target.value);
+                              }
+                            }}
+                            placeholder="Or input external design URL here"
+                            className="w-full bg-white border border-gray-200 px-3 py-2.5 rounded-lg text-[#0d0d0d] text-xs focus:outline-none focus:border-[#ff2b2b]/50 transition-all font-medium"
+                          />
+
+                          {/* Selected layout thumbnail preview */}
+                          {newImgUrl && (
+                            <div className="pt-1 text-center flex flex-col items-center justify-center">
+                              <span className="font-mono text-[8px] text-gray-400 uppercase tracking-widest font-black block mb-1">Image Preview</span>
+                              <div className="relative inline-block w-20 h-24 rounded-lg overflow-hidden border border-gray-200 bg-white p-0.5 shadow-sm">
+                                <img src={newImgUrl} alt="Design poster preview" className="w-full h-full object-cover rounded" />
+                                <button
+                                  type="button"
+                                  onClick={() => setNewImgUrl('')}
+                                  className="absolute top-1 right-1 p-1 bg-[#0d0d0d]/80 hover:bg-[#ff2b2b] text-white rounded-full transition-colors cursor-pointer border border-white/10"
+                                >
+                                  <X className="w-2.5 h-2.5" />
+                                </button>
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+
+                      {/* Premium badge */}
+                      <div className="flex items-center space-x-2.5 py-1">
+                        <input
+                          id="new-poster-premium"
+                          type="checkbox"
+                          checked={isPremium}
+                          onChange={(e) => setIsPremium(e.target.checked)}
+                          className="w-4 h-4 rounded border-gray-350 text-[#ff2b2b] focus:ring-[#ff2b2b] cursor-pointer"
+                        />
+                        <label htmlFor="new-poster-premium" className="text-gray-500 font-mono text-[9px] uppercase font-bold tracking-wider cursor-pointer">
+                          Mark as Premium PSD File
+                        </label>
+                      </div>
+
+                      {formSuccess && (
+                        <div className="bg-emerald-50 border border-emerald-200 py-2 px-3 rounded-lg text-emerald-600 font-mono text-[9px] font-bold text-center">
+                          ✓ Design Poster Added To Portfolio!
+                        </div>
+                      )}
+
+                      <button
+                        id="new-poster-submit-btn"
+                        type="submit"
+                        className="w-full bg-[#0d0d0d] hover:bg-[#ff2b2b] text-white font-bold py-2.5 rounded-lg text-xs tracking-widest uppercase cursor-pointer transition-colors shadow-sm"
+                      >
+                        Publish to Grid
+                      </button>
+                    </form>
+                  </div>
                 </div>
 
                 {/* Existing Poster List for deletion */}

@@ -2,7 +2,11 @@ import { SKILLS, DESIGNER_AVATAR } from '../data';
 import { ShieldCheck, Award, Layers2, Sparkles, Heart } from 'lucide-react';
 import { motion } from 'motion/react';
 
-export default function About() {
+interface AboutProps {
+  designerAvatar?: string;
+}
+
+export default function About({ designerAvatar }: AboutProps) {
   return (
     <section id="about" className="bg-white py-24 border-b border-gray-100 relative overflow-hidden text-left select-none">
       {/* Background radial gradient glow elements */}
@@ -37,7 +41,7 @@ export default function About() {
               <div className="w-full h-full rounded-full overflow-hidden bg-white relative border border-gray-200 p-1.5 flex items-center justify-center">
                 <div className="w-full h-full rounded-full overflow-hidden relative">
                   <img
-                    src={DESIGNER_AVATAR}
+                    src={designerAvatar || DESIGNER_AVATAR}
                     alt="GFX SOHAN Graphic Designer"
                     className="w-full h-full object-cover filter brightness-[1.01] contrast-[1.01] group-hover:scale-102 transition-all duration-700 select-none animate-fade-in"
                     referrerPolicy="no-referrer"

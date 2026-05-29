@@ -1,7 +1,8 @@
-import { useState } from 'react';
-import { Poster } from '../types';
-import { Download, MessageSquare, Eye, Calendar, Maximize2, Share2, Layers, Search, SlidersHorizontal, ArrowDownToLine } from 'lucide-react';
-import { motion, AnimatePresence } from 'motion/react';
+```tsx id="g7m2xp"
+import img1 from '../assets/images/01.jpg';
+import img2 from '../assets/images/02.jpg';
+import img3 from '../assets/images/03.jpg';
+```
 
 interface PortfolioProps {
   posters: Poster[];

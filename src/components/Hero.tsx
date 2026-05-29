@@ -5,9 +5,10 @@ import { motion } from 'motion/react';
 
 interface HeroProps {
   onViewWork: () => void;
+  designerAvatar?: string;
 }
 
-export default function Hero({ onViewWork }: HeroProps) {
+export default function Hero({ onViewWork, designerAvatar }: HeroProps) {
   const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
   const [activeAnchor, setActiveAnchor] = useState<string | null>(null);
   
@@ -300,7 +301,7 @@ export default function Hero({ onViewWork }: HeroProps) {
                     {/* The image curved wrapper */}
                     <div className="w-full h-full rounded-full overflow-hidden relative">
                       <img
-                        src={DESIGNER_AVATAR}
+                        src={designerAvatar || DESIGNER_AVATAR}
                         alt="GFX SOHAN Graphics Designer Portfolio"
                         className="w-full h-full object-cover filter brightness-[1.01]"
                         referrerPolicy="no-referrer"

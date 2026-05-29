@@ -9,7 +9,7 @@ export const INITIAL_POSTERS: Poster[] = [
     id: 'cyberpunk-future',
     title: 'GFX SOHAN FUTURE - Cyberpunk Editorial',
     category: 'Posters',
-    imageUrl: 'https://images.unsplash.com/photo-1601049541289-9b1b7bbbfe19?q=80&w=800&auto=format&fit=crop',
+    imageUrl: 'src/assets/images/Winter sale.jpg',
     psdSize: '124.5 MB',
     views: 1420,
     downloads: 412,
