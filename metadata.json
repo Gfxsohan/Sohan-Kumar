@@ -1,0 +1,6 @@
+{
+  "name": "Sohanx Graphics Portfolio",
+  "description": "Modern, minimal, and premium graphics design portfolio, PSD download depot, and WhatsApp ordering hub for sohanx brand.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
